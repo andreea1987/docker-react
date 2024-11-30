@@ -1,16 +1,26 @@
 stages:
+  - fetch
+  - build
   - test
 
-# Test Stage
-test:
-  stage: test
-  image: docker:latest  # Use Docker-in-Docker
-  services:
-    - docker:dind  # Docker-in-Docker service to enable Docker commands
-  variables:
-    DOCKER_DRIVER: overlay2  # Ensure Docker uses an appropriate storage driver
+fetch-code:
+  stage: fetch
+  image: alpine:latest
   before_script:
-    - docker info  # Verify Docker is working
-    - docker build -t abalauca/docker-react -f Dockerfile.dev .
+    # Install Git and SSH tools
+    - apk add --no-cache git openssh
+
+    # Set up the SSH private key from the variable
+    - mkdir -p ~/.ssh
+    - echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+
+    # Add GitHub to known hosts to prevent authenticity prompt
+    - ssh-keyscan github.com >> ~/.ssh/known_hosts
+
   script:
-    - docker run -e CI=true abalauca/docker-react yarn run test -- --coverage
+    # Clone the GitHub repository using SSH
+    - git clone git@github.com:andreea1987/docker-react.git
+    - cd docker-react
+    - echo "Code fetched successfully!"
+
