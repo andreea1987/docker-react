@@ -5,47 +5,30 @@ stages:
 
 fetch-code:
   stage: fetch
-  image: alpine:latest
+  image: node:16
   before_script:
-    - apk add --no-cache git openssh
+    - apt-get update && apt-get install -y git openssh-client
     - mkdir -p ~/.ssh
     - echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
     - chmod 600 ~/.ssh/id_rsa
     - ssh-keyscan github.com >> ~/.ssh/known_hosts
   script:
-    # Clone the repository
     - echo "Cloning the repository..."
     - git clone git@github.com:andreea1987/docker-react.git || { echo "Failed to clone repository"; exit 1; }
-    # Check the contents of the current directory
-    - echo "Directory contents after cloning:"
-    - ls -la
-    # Verify and navigate to the cloned directory
-    - cd docker-react || { echo "Directory does not exist"; exit 1; }
-    - echo "Successfully entered the docker-react directory"
+    - echo "Repository cloned successfully!"
 
 build:
   stage: build
   image: node:16
-  cache:
-    paths:
-      - docker-react/.yarn/cache
   script:
-    - cd docker-react
-    - yarn install  # Install dependencies
-    - yarn build    # Build the project
-  artifacts:
-    paths:
-      - docker-react/build/
+    - yarn install
+    - yarn build
 
 test:
   stage: test
   image: node:16
-  cache:
-    paths:
-      - docker-react/.yarn/cache
   script:
-    - cd docker-react
-    - yarn install
-    - yarn test --ci  # Run tests in CI mode
+    - yarn test --watchAll=false
+
 
 
