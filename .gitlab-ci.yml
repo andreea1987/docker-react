@@ -7,20 +7,39 @@ fetch-code:
   stage: fetch
   image: alpine:latest
   before_script:
-    # Install Git and SSH tools
     - apk add --no-cache git openssh
-
-    # Set up the SSH private key from the variable
     - mkdir -p ~/.ssh
     - echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
     - chmod 600 ~/.ssh/id_rsa
-
-    # Add GitHub to known hosts to prevent authenticity prompt
     - ssh-keyscan github.com >> ~/.ssh/known_hosts
-
   script:
-    # Clone the GitHub repository using SSH
     - git clone git@github.com:andreea1987/docker-react.git
     - cd docker-react
     - echo "Code fetched successfully!"
+
+build:
+  stage: build
+  image: node:16
+  cache:
+    paths:
+      - docker-react/.yarn/cache
+  script:
+    - cd docker-react
+    - yarn install  # Install dependencies
+    - yarn build    # Build the project
+  artifacts:
+    paths:
+      - docker-react/build/
+
+test:
+  stage: test
+  image: node:16
+  cache:
+    paths:
+      - docker-react/.yarn/cache
+  script:
+    - cd docker-react
+    - yarn install
+    - yarn test --ci  # Run tests in CI mode
+
 
