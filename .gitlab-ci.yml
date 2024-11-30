@@ -1,0 +1,16 @@
+stages:
+  - test
+
+# Test Stage
+test:
+  stage: test
+  image: docker:latest  # Use Docker-in-Docker
+  services:
+    - docker:dind  # Docker-in-Docker service to enable Docker commands
+  variables:
+    DOCKER_DRIVER: overlay2  # Ensure Docker uses an appropriate storage driver
+  before_script:
+    - docker info  # Verify Docker is working
+    - docker build -t abalauca/docker-react -f Dockerfile.dev .
+  script:
+    - docker run -e CI=true abalauca/docker-react yarn run test -- --coverage
