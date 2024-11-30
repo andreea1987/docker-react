@@ -1,34 +1,25 @@
 stages:
-  - fetch
-  - build
+  - install
   - test
 
-fetch-code:
-  stage: fetch
+install-dependencies:
+  stage: install
   image: node:16
-  before_script:
-    - apt-get update && apt-get install -y git openssh-client
-    - mkdir -p ~/.ssh
-    - echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
-    - chmod 600 ~/.ssh/id_rsa
-    - ssh-keyscan github.com >> ~/.ssh/known_hosts
-  script:
-    - echo "Cloning the repository..."
-    - git clone git@github.com:andreea1987/docker-react.git || { echo "Failed to clone repository"; exit 1; }
-    - echo "Repository cloned successfully!"
-
-build:
-  stage: build
-  image: node:16
+  cache:
+    paths:
+      - node_modules/
   script:
     - yarn install
-    - yarn build
 
-test:
+run-tests:
   stage: test
   image: node:16
+  cache:
+    paths:
+      - node_modules/
   script:
     - yarn test --watchAll=false
+
 
 
 
